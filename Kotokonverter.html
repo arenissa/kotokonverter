@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Котоконвертер</title>
+<style>
+:root{
+  --bg:#f3fbff;--card-bg:#fff;--text:#1a1a2e;--sub:#6b6b7a;
+  --shadow:rgba(0,0,0,0.08);--input-bg:#fff;--input-border:#ddd;
+  --result-bg:#e3f2fd;--accent:#64b5f6;--accent-dark:#1e88e5;
+  --tag-bg:#e3f2fd;--tag-color:#1e3a5f;--mode-bg:#e3f2fd;
+}
+[data-theme="dark"]{
+  --bg:#111820;--card-bg:#1a2330;--text:#e8f4ff;--sub:#7a9ab8;
+  --shadow:rgba(0,0,0,0.5);--input-bg:#1f2e3d;--input-border:#2d3f52;
+  --result-bg:#1f2e3d;--accent:#4fa3e0;--accent-dark:#64b5f6;
+  --tag-bg:#1f2e3d;--tag-color:#90caf9;--mode-bg:#1f2e3d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;padding:16px 16px 40px;
+  transition:background .3s,color .3s;
+}
+.top-bar{
+  width:100%;max-width:420px;display:flex;
+  justify-content:space-between;align-items:center;margin-bottom:16px;
+}
+.back-btn,.theme-btn{
+  background:var(--card-bg);border:1px solid var(--accent);
+  border-radius:999px;padding:6px 14px;font-size:13px;
+  color:var(--text);cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;gap:5px;
+  transition:background .2s;
+}
+.back-btn:hover,.theme-btn:hover{background:var(--tag-bg);}
+.cat-card{
+  background:var(--card-bg);border-radius:24px;
+  box-shadow:0 12px 30px var(--shadow);
+  padding:20px 20px 24px;width:100%;max-width:420px;
+  transition:background .3s;
+}
+.cat-face{
+  position:relative;width:120px;height:100px;
+  margin:0 auto 12px;pointer-events:none;
+}
+.cat-head{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,#bbdefb,#90caf9);
+  border-radius:60px 60px 50px 50px;
+  box-shadow:0 6px 14px var(--shadow);
+}
+.cat-ear{
+  position:absolute;width:38px;height:38px;
+  background:#bbdefb;clip-path:polygon(50% 0,0 100%,100% 100%);top:-14px;
+}
+.cat-ear.left{left:6px;transform:rotate(-8deg);}
+.cat-ear.right{right:6px;transform:rotate(8deg);}
+.cat-ear-inner{
+  position:absolute;inset:8px 9px 6px;
+  background:#e3f2fd;clip-path:polygon(50% 0,0 100%,100% 100%);
+}
+.cat-eye{
+  position:absolute;top:36px;width:16px;height:20px;
+  background:#fff;border-radius:50%;overflow:hidden;
+}
+.cat-eye.left{left:34px;}
+.cat-eye.right{right:34px;}
+.cat-nose{
+  position:absolute;top:56px;left:50%;transform:translateX(-50%);
+  width:13px;height:10px;background:#ff8a80;
+  border-radius:50% 50% 60% 60%;
+}
+.cat-mouth{
+  position:absolute;top:66px;left:50%;
+  width:24px;height:14px;transform:translateX(-50%);
+}
+.cat-mouth::before,.cat-mouth::after{
+  content:"";position:absolute;width:12px;height:9px;
+  border-bottom:2px solid #5d4037;border-radius:0 0 12px 12px;top:0;
+}
+.cat-mouth::before{right:50%;border-right:2px solid #5d4037;}
+.cat-mouth::after{left:50%;border-left:2px solid #5d4037;}
+.cat-whisker{position:absolute;width:30px;height:1px;background:#5d4037;top:60px;}
+.cat-whisker.left1{left:12px;transform:rotate(6deg);}
+.cat-whisker.left2{left:14px;top:67px;transform:rotate(-4deg);}
+.cat-whisker.right1{right:12px;transform:rotate(-6deg);}
+.cat-whisker.right2{right:14px;top:67px;transform:rotate(4deg);}
+.cat-paws{display:flex;justify-content:center;gap:16px;margin-top:78px;}
+.cat-paw{
+  width:36px;height:22px;background:#bbdefb;
+  border-radius:18px 18px 14px 14px;
+  box-shadow:0 3px 0 rgba(0,0,0,0.08);
+  position:relative;animation:paw-bounce 1.2s infinite ease-in-out;
+}
+.cat-paw.right{animation-delay:.2s;}
+.cat-paw::after{
+  content:"";position:absolute;width:8px;height:8px;
+  background:#bbdefb;border-radius:50%;bottom:-3px;left:4px;
+  box-shadow:9px 0 0 #bbdefb,18px 0 0 #bbdefb;
+}
+@keyframes paw-bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(3px);}}
+.title{text-align:center;font-weight:700;margin-bottom:4px;font-size:17px;}
+.subtitle{text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px;}
+.section-title{
+  font-size:13px;font-weight:600;margin:10px 0 6px;
+}
+.rate-info{
+  font-size:11px;color:var(--sub);margin-bottom:10px;
+}
+.currency-row{
+  display:flex;gap:8px;align-items:center;margin-bottom:8px;
+}
+.currency-label{
+  font-size:12px;color:var(--sub);flex:0 0 auto;
+}
+.currency-input{
+  flex:1;
+}
+.currency-input input{
+  width:100%;padding:7px 9px;border-radius:10px;
+  border:1px solid var(--input-border);
+  background:var(--input-bg);color:var(--text);
+  font-size:14px;outline:none;transition:border-color .2s;
+}
+.currency-input input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(100,181,246,0.2);
+}
+.currency-buttons{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;
+}
+.curr-btn{
+  flex:1 1 calc(50% - 3px);
+  border-radius:999px;border:1px solid var(--accent);
+  background:var(--mode-bg);color:var(--text);
+  font-size:11px;padding:6px 8px;cursor:pointer;
+  display:flex;justify-content:center;align-items:center;gap:4px;
+  transition:background .2s,color .2s;
+}
+.curr-btn span.code{font-weight:600;font-size:12px;}
+.curr-btn.active{
+  background:var(--accent-dark);
+  color:#fff;
+  border-color:var(--accent-dark);
+}
+.swap-row{
+  display:flex;justify-content:center;margin:6px 0 10px;
+}
+.swap-btn{
+  border-radius:999px;border:1px solid var(--accent);
+  background:var(--mode-bg);padding:6px 12px;
+  font-size:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.result-box{
+  background:var(--result-bg);border-radius:12px;
+  padding:10px 12px;margin-top:6px;font-size:12px;
+  color:var(--sub);
+}
+.result-main{font-weight:700;font-size:14px;margin-bottom:3px;color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="Index.html" class="back-btn">← Назад</a>
+  <button class="theme-btn" id="themeBtn">🌙 Тёмная</button>
+</div>
+
+<div class="cat-card">
+  <div class="cat-face">
+    <div class="cat-head"></div>
+    <div class="cat-ear left"><div class="cat-ear-inner"></div></div>
+    <div class="cat-ear right"><div class="cat-ear-inner"></div></div>
+    <div class="cat-eye left"></div>
+    <div class="cat-eye right"></div>
+    <div class="cat-nose"></div>
+    <div class="cat-mouth"></div>
+    <div class="cat-whisker left1"></div>
+    <div class="cat-whisker left2"></div>
+    <div class="cat-whisker right1"></div>
+    <div class="cat-whisker right2"></div>
+    <div class="cat-paws">
+      <div class="cat-paw left"></div>
+      <div class="cat-paw right"></div>
+    </div>
+  </div>
+
+  <div class="title">Котоконвертер</div>
+  <div class="subtitle">TRY · RUB · USD · EUR по курсу ЦБ РФ</div>
+
+  <div class="rate-info" id="rateInfo">Загрузка курса ЦБ РФ…</div>
+
+  <div class="section-title">Кот берёт</div>
+  <div class="currency-buttons" id="takeButtons">
+    <button class="curr-btn active" data-code="TRY"><span class="code">TRY</span>· лиры</button>
+    <button class="curr-btn" data-code="RUB"><span class="code">RUB</span>· рубли</button>
+    <button class="curr-btn" data-code="USD"><span class="code">USD</span>· доллары</button>
+    <button class="curr-btn" data-code="EUR"><span class="code">EUR</span>· евро</button>
+  </div>
+  <div class="currency-row">
+    <div class="currency-label">Сколько кот берёт</div>
+    <div class="currency-input">
+      <input type="text" id="amountIn" value="1000">
+    </div>
+  </div>
+
+  <div class="swap-row">
+    <button class="swap-btn" id="swapBtn">⇅ поменять местами</button>
+  </div>
+
+  <div class="section-title">Кот отдаёт</div>
+  <div class="currency-buttons" id="giveButtons">
+    <button class="curr-btn" data-code="TRY"><span class="code">TRY</span>· лиры</button>
+    <button class="curr-btn active" data-code="RUB"><span class="code">RUB</span>· рубли</button>
+    <button class="curr-btn" data-code="USD"><span class="code">USD</span>· доллары</button>
+    <button class="curr-btn" data-code="EUR"><span class="code">EUR</span>· евро</button>
+  </div>
+  <div class="currency-row">
+    <div class="currency-label">Сколько кот отдаёт</div>
+    <div class="currency-input">
+      <input type="text" id="amountOut" readonly>
+    </div>
+  </div>
+
+  <div class="section-title">Кот считает</div>
+  <div class="result-box">
+    <div class="result-main" id="resMain">Ждём курс и числа…</div>
+    <div id="resSub"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+
+  // Тема
+  if (localStorage.getItem('theme') === 'dark') {
+    root.setAttribute('data-theme', 'dark');
+    themeBtn.textContent = '☀️ Светлая';
+  }
+  themeBtn.addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') === 'dark';
+    if (dark) {
+      root.removeAttribute('data-theme');
+      themeBtn.textContent = '🌙 Тёмная';
+      localStorage.setItem('theme', 'light');
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      themeBtn.textContent = '☀️ Светлая';
+      localStorage.setItem('theme', 'dark');
+    }
+  });
+
+  // Глаза кота
+  document.querySelectorAll('.cat-eye').forEach(eye => {
+    const p = document.createElement('div');
+    Object.assign(p.style, {
+      position: 'absolute', width: '10px', height: '14px',
+      background: '#333', borderRadius: '50%',
+      top: '3px', left: '3px', transition: 'transform .1s'
+    });
+    eye.appendChild(p);
+  });
+  document.addEventListener('mousemove', e => {
+    const r = document.querySelector('.cat-face').getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width / 2)) / 80;
+    const dy = (e.clientY - (r.top + r.height / 2)) / 80;
+    document.querySelectorAll('.cat-eye div').forEach(p => {
+      p.style.transform = `translate(${dx}px,${dy}px)`;
+    });
+  });
+
+  // Элементы конвертера
+  const rateInfo   = document.getElementById('rateInfo');
+  const takeButtons = document.getElementById('takeButtons');
+  const giveButtons = document.getElementById('giveButtons');
+  const amountIn   = document.getElementById('amountIn');
+  const amountOut  = document.getElementById('amountOut');
+  const swapBtn    = document.getElementById('swapBtn');
+  const resMain    = document.getElementById('resMain');
+  const resSub     = document.getElementById('resSub');
+
+  const rates = {}; // курсы в RUB
+  let ready = false;
+
+  function fmt(n) {
+    if (!isFinite(n)) return '0';
+    return n.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function getActiveCode(container) {
+    const active = container.querySelector('.curr-btn.active');
+    return active ? active.dataset.code : null;
+  }
+
+  function setActiveCode(container, code) {
+    container.querySelectorAll('.curr-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.code === code);
+    });
+  }
+
+  function recalc() {
+    if (!ready) return;
+    const from = getActiveCode(takeButtons);
+    const to   = getActiveCode(giveButtons);
+    let val    = parseFloat(
+      (amountIn.value || '').replace(' ', '').replace(',', '.')
+    ) || 0;
+
+    if (!from || !to || !rates[from] || !rates[to]) {
+      amountOut.value = '';
+      resMain.textContent = 'Кот ждёт корректные данные…';
+      resSub.textContent  = '';
+      return;
+    }
+
+    let inRub;
+    if (from === 'RUB') {
+      inRub = val;
+    } else {
+      inRub = val * rates[from];
+    }
+
+    let result;
+    if (to === 'RUB') {
+      result = inRub;
+    } else {
+      result = inRub / rates[to];
+    }
+
+    amountOut.value = fmt(result);
+    resMain.textContent = `${fmt(val)} ${from} → ${fmt(result)} ${to}`;
+    resSub.textContent  = `1 ${from} ≈ ${fmt(rates[from] / rates[to])} ${to}`;
+  }
+
+  // Клики по валютным кнопкам
+  takeButtons.addEventListener('click', e => {
+    const btn = e.target.closest('.curr-btn');
+    if (!btn) return;
+    setActiveCode(takeButtons, btn.dataset.code);
+    recalc();
+  });
+
+  giveButtons.addEventListener('click', e => {
+    const btn = e.target.closest('.curr-btn');
+    if (!btn) return;
+    setActiveCode(giveButtons, btn.dataset.code);
+    recalc();
+  });
+
+  amountIn.addEventListener('input', recalc);
+
+  swapBtn.addEventListener('click', () => {
+    const from = getActiveCode(takeButtons);
+    const to   = getActiveCode(giveButtons);
+    if (!from || !to) return;
+    setActiveCode(takeButtons, to);
+    setActiveCode(giveButtons, from);
+    recalc();
+  });
+
+  // Курсы ЦБ РФ
+  async function loadRates() {
+    try {
+      rateInfo.textContent = 'Загрузка курса ЦБ РФ…';
+      const res = await fetch('https://www.cbr-xml-daily.ru/daily_json.js');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      rates['RUB'] = 1;
+
+      if (data.Valute.USD) rates['USD'] = data.Valute.USD.Value;
+      if (data.Valute.EUR) rates['EUR'] = data.Valute.EUR.Value;
+      if (data.Valute.TRY) rates['TRY'] = data.Valute.TRY.Value;
+
+      const date = new Date(data.Date);
+      rateInfo.textContent = 'Дата курса: ' + date.toLocaleDateString('ru-RU');
+
+      ready = true;
+      recalc();
+    } catch (e) {
+      console.error(e);
+      rateInfo.textContent = 'Не получилось загрузить курс ЦБ РФ :(';
+      resMain.textContent = 'Кот без курса грустит…';
+      resSub.textContent  = 'Проверь интернет или сайт ЦБ РФ.';
+    }
+  }
+
+  loadRates();
+});
+</script>
+</body>
+</html>

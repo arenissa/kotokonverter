@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Котики-счётчики</title>
+<style>
+:root{
+  --bg:#f3fbff;--card-bg:#fff;--text:#1a1a2e;--sub:#6b6b7a;
+  --shadow:rgba(0,0,0,0.08);--accent:#64b5f6;--accent-dark:#1e88e5;
+  --tag-bg:#e3f2fd;--tag-color:#1e3a5f;
+}
+[data-theme="dark"]{
+  --bg:#111820;--card-bg:#1a2330;--text:#e8f4ff;--sub:#7a9ab8;
+  --shadow:rgba(0,0,0,0.5);--accent:#4fa3e0;--accent-dark:#64b5f6;
+  --tag-bg:#1f2e3d;--tag-color:#90caf9;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;padding:16px 16px 40px;
+  transition:background .3s,color .3s;
+}
+.top-bar{
+  width:100%;max-width:420px;display:flex;
+  justify-content:flex-end;align-items:center;margin-bottom:16px;
+}
+.theme-btn{
+  background:var(--card-bg);border:1px solid var(--accent);
+  border-radius:999px;padding:6px 14px;font-size:13px;
+  color:var(--text);cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;
+  transition:background .2s;
+}
+.theme-btn:hover{background:var(--tag-bg);}
+.page-title{
+  font-weight:700;font-size:20px;margin-bottom:4px;text-align:center;
+}
+.page-sub{
+  font-size:13px;color:var(--sub);margin-bottom:16px;text-align:center;
+  max-width:420px;
+}
+.cats-grid{
+  width:100%;max-width:420px;display:flex;
+  flex-direction:column;gap:12px;
+}
+.cat-btn{
+  display:block;text-decoration:none;color:inherit;
+  background:var(--card-bg);border-radius:18px;
+  padding:12px 14px;
+  box-shadow:0 8px 22px var(--shadow);
+  transition:transform .12s ease, box-shadow .12s ease, background .2s;
+}
+.cat-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 30px var(--shadow);
+  background:rgba(255,255,255,0.9);
+}
+.cat-inner{
+  display:flex;gap:12px;align-items:center;
+}
+.cat-face{
+  position:relative;width:64px;height:54px;flex:0 0 64px;
+}
+.cat-head{
+  position:absolute;inset:4px 4px 0;
+  background:linear-gradient(135deg,#bbdefb,#90caf9);
+  border-radius:32px 32px 26px 26px;
+  box-shadow:0 4px 10px var(--shadow);
+}
+.cat-ear{
+  position:absolute;width:20px;height:20px;
+  background:#bbdefb;clip-path:polygon(50% 0,0 100%,100% 100%);top:-4px;
+}
+.cat-ear.left{left:6px;transform:rotate(-8deg);}
+.cat-ear.right{right:6px;transform:rotate(8deg);}
+.cat-ear-inner{
+  position:absolute;inset:4px 5px 3px;
+  background:#e3f2fd;clip-path:polygon(50% 0,0 100%,100% 100%);
+}
+.cat-eye{
+  position:absolute;top:22px;width:10px;height:12px;
+  background:#fff;border-radius:50%;overflow:hidden;
+}
+.cat-eye.left{left:22px;}
+.cat-eye.right{right:22px;}
+.cat-nose{
+  position:absolute;top:32px;left:50%;transform:translateX(-50%);
+  width:8px;height:6px;background:#ff8a80;
+  border-radius:50% 50% 60% 60%;
+}
+.cat-mouth{
+  position:absolute;top:38px;left:50%;
+  width:16px;height:8px;transform:translateX(-50%);
+}
+.cat-mouth::before,.cat-mouth::after{
+  content:"";position:absolute;width:8px;height:6px;
+  border-bottom:2px solid #5d4037;border-radius:0 0 8px 8px;top:0;
+}
+.cat-mouth::before{right:50%;border-right:2px solid #5d4037;}
+.cat-mouth::after{left:50%;border-left:2px solid #5d4037;}
+.cat-whisker{position:absolute;width:18px;height:1px;background:#5d4037;top:32px;}
+.cat-whisker.left1{left:6px;transform:rotate(6deg);}
+.cat-whisker.left2{left:7px;top:36px;transform:rotate(-4deg);}
+.cat-whisker.right1{right:6px;transform:rotate(-6deg);}
+.cat-whisker.right2{right:7px;top:36px;transform:rotate(4deg);}
+.cat-text{
+  flex:1;min-width:0;
+}
+.cat-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;
+}
+.cat-name{
+  font-weight:700;font-size:15px;
+}
+.cat-tag{
+  font-size:11px;padding:3px 8px;border-radius:999px;
+  background:var(--tag-bg);color:var(--tag-color);
+  white-space:nowrap;
+}
+.cat-desc{
+  font-size:12px;color:var(--sub);margin-bottom:4px;
+}
+.cat-meta{
+  font-size:11px;color:var(--sub);
+}
+.cat-meta span + span::before{
+  content:" • ";margin:0 3px;
+}
+.footer-note{
+  margin-top:18px;font-size:11px;color:var(--sub);text-align:center;
+  max-width:420px;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="theme-btn" id="themeBtn">🌙 Тёмная</button>
+</div>
+
+<div class="page-title">Выбери котика</div>
+<div class="page-sub">Два умных котика — каждый считает своё.</div>
+
+<div class="cats-grid">
+
+  <a href="Kotokonverter.html" class="cat-btn">
+    <div class="cat-inner">
+      <div class="cat-face">
+        <div class="cat-head"></div>
+        <div class="cat-ear left"><div class="cat-ear-inner"></div></div>
+        <div class="cat-ear right"><div class="cat-ear-inner"></div></div>
+        <div class="cat-eye left"></div>
+        <div class="cat-eye right"></div>
+        <div class="cat-nose"></div>
+        <div class="cat-mouth"></div>
+        <div class="cat-whisker left1"></div>
+        <div class="cat-whisker left2"></div>
+        <div class="cat-whisker right1"></div>
+        <div class="cat-whisker right2"></div>
+      </div>
+      <div class="cat-text">
+        <div class="cat-header">
+          <div class="cat-name">Котоконвертер</div>
+          <div class="cat-tag">Валюты</div>
+        </div>
+        <div class="cat-desc">TRY, RUB, USD, EUR по курсу ЦБ РФ.</div>
+        <div class="cat-meta">
+          <span>Курсы ЦБ РФ онлайн</span><span>Для уроков и жизни</span>
+        </div>
+      </div>
+    </div>
+  </a>
+
+  <a href="Kotoprotsent.html" class="cat-btn">
+    <div class="cat-inner">
+      <div class="cat-face">
+        <div class="cat-head"></div>
+        <div class="cat-ear left"><div class="cat-ear-inner"></div></div>
+        <div class="cat-ear right"><div class="cat-ear-inner"></div></div>
+        <div class="cat-eye left"></div>
+        <div class="cat-eye right"></div>
+        <div class="cat-nose"></div>
+        <div class="cat-mouth"></div>
+        <div class="cat-whisker left1"></div>
+        <div class="cat-whisker left2"></div>
+        <div class="cat-whisker right1"></div>
+        <div class="cat-whisker right2"></div>
+      </div>
+      <div class="cat-text">
+        <div class="cat-header">
+          <div class="cat-name">Котик скидок</div>
+          <div class="cat-tag">Проценты</div>
+        </div>
+        <div class="cat-desc">Скидки, наценки и проценты в рублях.</div>
+        <div class="cat-meta">
+          <span>Проценты, скидки, наценки</span><span>Подходит для финграмотности</span>
+        </div>
+      </div>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer-note">
+  Открой эту страницу на телефоне или проекторе и выбери нужного котика.
+</div>
+
+<script>
+const root = document.documentElement;
+const themeBtn = document.getElementById('themeBtn');
+
+if (localStorage.getItem('theme') === 'dark') {
+  root.setAttribute('data-theme', 'dark');
+  themeBtn.textContent = '☀️ Светлая';
+}
+themeBtn.addEventListener('click', () => {
+  const dark = root.getAttribute('data-theme') === 'dark';
+  if (dark) {
+    root.removeAttribute('data-theme');
+    themeBtn.textContent = '🌙 Тёмная';
+    localStorage.setItem('theme', 'light');
+  } else {
+    root.setAttribute('data-theme', 'dark');
+    themeBtn.textContent = '☀️ Светлая';
+    localStorage.setItem('theme', 'dark');
+  }
+});
+
+// двигаем зрачки и на главной
+document.querySelectorAll('.cat-face').forEach(face => {
+  face.querySelectorAll('.cat-eye').forEach(eye => {
+    const p = document.createElement('div');
+    Object.assign(p.style, {
+      position: 'absolute', width: '6px', height: '8px',
+      background: '#333', borderRadius: '50%',
+      top: '2px', left: '2px', transition: 'transform .1s'
+    });
+    eye.appendChild(p);
+  });
+});
+
+document.addEventListener('mousemove', e => {
+  document.querySelectorAll('.cat-face').forEach(face => {
+    const r = face.getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width / 2)) / 80;
+    const dy = (e.clientY - (r.top + r.height / 2)) / 80;
+    face.querySelectorAll('.cat-eye div').forEach(p => {
+      p.style.transform = `translate(${dx}px,${dy}px)`;
+    });
+  });
+});
+</script>
+</body>
+</html>
